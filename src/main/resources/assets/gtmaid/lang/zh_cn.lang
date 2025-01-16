@@ -1,3 +1,7 @@
 #任务
 task.gtmaid.maintenance=维护机器
-task.gtmaid.falled=伐木
+task.gtmaid.log=伐木
+task.gtmaid.sand=挖沙子
+task.gtmaid.gravel=挖沙砾
+task.gtmaid.dirt=挖泥土
+task.gtmaid.ore=挖矿

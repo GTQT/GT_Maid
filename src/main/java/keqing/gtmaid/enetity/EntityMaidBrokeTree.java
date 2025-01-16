@@ -1,53 +1,39 @@
-package keqing.gtmaid.task;
+package keqing.gtmaid.enetity;
 
 import com.github.tartaricacid.touhoulittlemaid.api.AbstractEntityMaid;
-import gregtech.api.metatileentity.MetaTileEntity;
-import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
-import gregtech.common.items.MetaItems;
-import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMaintenanceHatch;
-import keqing.gtmaid.api.GMLog;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.ai.EntityAIMoveToBlock;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemAxe;
-import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.item.ItemTool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
-import java.lang.reflect.Field;
+import static keqing.gtmaid.GMConfig.runDelayTree;
 
 
-public class EntityMaidFalled extends EntityAIMoveToBlock {
+public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
     private final AbstractEntityMaid maid;
 
-    public EntityMaidFalled(AbstractEntityMaid entityMaid, float speed) {
-        super(entityMaid, speed, 8);
+    public EntityMaidBrokeTree(AbstractEntityMaid entityMaid, float speed) {
+        super(entityMaid, speed, 4);
         this.maid = entityMaid;
     }
 
     @Override
-    public boolean searchForDestination()
-    {
-        int i = 8;
+    public boolean searchForDestination() {
+        int i = 4;
         BlockPos blockpos = new BlockPos(this.maid);
 
-        for (int k = -1; k <= 8; k++)
-        {
-            for (int l = 0; l < i; ++l)
-            {
-                for (int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1)
-                {
-                    for (int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1)
-                    {
+        for (int k = -1; k <= 8; k++) {
+            for (int l = 0; l < i; ++l) {
+                for (int i1 = 0; i1 <= l; i1 = i1 > 0 ? -i1 : 1 - i1) {
+                    for (int j1 = i1 < l && i1 > -l ? l : 0; j1 <= l; j1 = j1 > 0 ? -j1 : 1 - j1) {
                         BlockPos blockpos1 = blockpos.add(i1, k - 1, j1);
 
-                        if (maid.isWithinHomeDistanceFromPosition(blockpos1) && this.shouldMoveTo(maid.world, blockpos1))
-                        {
+                        if (maid.isWithinHomeDistanceFromPosition(blockpos1) && this.shouldMoveTo(maid.world, blockpos1)) {
                             this.destinationBlock = blockpos1;
                             return true;
                         }
@@ -60,18 +46,19 @@ public class EntityMaidFalled extends EntityAIMoveToBlock {
     }
 
     @Override
-    public boolean shouldExecute()
-    {
-        if (this.runDelay > 0)
-        {
-            --this.runDelay;
-            return false;
+    public boolean shouldExecute() {
+        if (this.maid.getHeldItemMainhand().getItem() instanceof ItemTool) {
+            ItemTool tool = (ItemTool) this.maid.getHeldItemMainhand().getItem();
+            if (!tool.getToolClasses(this.maid.getHeldItemMainhand()).contains("axe")) return false;
+            if (this.runDelay > 0) {
+                --this.runDelay;
+                return false;
+            } else {
+                this.runDelay = runDelayTree + maid.getRNG().nextInt(runDelayTree);
+                return this.searchForDestination();
+            }
         }
-        else
-        {
-            this.runDelay = 20 + maid.getRNG().nextInt(20);
-            return this.searchForDestination();
-        }
+        return false;
     }
 
     @Override
@@ -80,6 +67,7 @@ public class EntityMaidFalled extends EntityAIMoveToBlock {
         Block block = blockState.getBlock();
         maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
         maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
+        maid.getHeldItemMainhand().damageItem(1, maid);
     }
 
     @Override
@@ -88,7 +76,7 @@ public class EntityMaidFalled extends EntityAIMoveToBlock {
         IBlockState blockState = worldIn.getBlockState(pos);
         // 获取方块
         Block block = blockState.getBlock();
-        ItemStack itemStack =new ItemStack(block);
+        ItemStack itemStack = new ItemStack(block);
         if (itemStack.isEmpty()) {
             return false;
         }

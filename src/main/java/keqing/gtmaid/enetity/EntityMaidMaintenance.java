@@ -1,11 +1,10 @@
-package keqing.gtmaid.task;
+package keqing.gtmaid.enetity;
 
 import com.github.tartaricacid.touhoulittlemaid.api.AbstractEntityMaid;
 import gregtech.api.metatileentity.MetaTileEntity;
 import gregtech.api.metatileentity.interfaces.IGregTechTileEntity;
 import gregtech.common.items.MetaItems;
 import gregtech.common.metatileentities.multi.multiblockpart.MetaTileEntityMaintenanceHatch;
-import keqing.gtmaid.api.GMLog;
 import net.minecraft.entity.ai.EntityAIMoveToBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
