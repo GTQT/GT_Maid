@@ -2,10 +2,7 @@ package keqing.gtmaid;
 
 import com.github.tartaricacid.touhoulittlemaid.api.LittleMaidAPI;
 import keqing.gtmaid.api.GMLog;
-import keqing.gtmaid.task.TaskBreakBlock;
-import keqing.gtmaid.task.TaskBrokeTree;
-import keqing.gtmaid.task.TaskDrillOre;
-import keqing.gtmaid.task.TaskMaintenance;
+import keqing.gtmaid.task.*;
 import net.minecraft.init.Blocks;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -44,6 +41,19 @@ public class GTMaid {
         LittleMaidAPI.registerTask(new TaskBreakBlock(Blocks.SAND,-4,4,"sand"));
         LittleMaidAPI.registerTask(new TaskBreakBlock(Blocks.GRAVEL,-4,4,"gravel"));
         LittleMaidAPI.registerTask(new TaskBreakBlock(Blocks.DIRT,-6,2,"dirt"));
+        LittleMaidAPI.registerTask(new TaskBreakBlock(Blocks.CLAY,-4,4,"clay"));
         LittleMaidAPI.registerTask(new TaskDrillOre());
+        LittleMaidAPI.registerTask(new TaskWashOre());
+        LittleMaidAPI.registerTask(new TaskPickWater());
+        LittleMaidAPI.registerTask(new TaskPickLava());
+        LittleMaidAPI.registerTask(new TaskAddWater());
+        LittleMaidAPI.registerTask(new TaskPickItems());
+        LittleMaidAPI.registerTask(new TaskGenerator());
+        LittleMaidAPI.registerTask(new TaskPlantTree());
+        LittleMaidAPI.registerTask(new TaskHammer());
+        LittleMaidAPI.registerTask(new TaskFile());
+        LittleMaidAPI.registerTask(new TaskMortar());
+        LittleMaidAPI.registerTask(new TaskCutter());
+        LittleMaidAPI.registerTask(new TaskSaw());
     }
 }

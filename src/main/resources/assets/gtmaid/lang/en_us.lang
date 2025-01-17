@@ -1,7 +1,16 @@
 #Task
 task.gtmaid.maintenance=Maintenance Machine
-task.gtmaid.log=伐木
-task.gtmaid.sand=挖沙子
-task.gtmaid.gravel=挖沙砾
-task.gtmaid.dirt=挖泥土
-task.gtmaid.ore=挖矿
+task.gtmaid.log=Logging
+task.gtmaid.sand=Excavating Sand
+task.gtmaid.gravel=Excavating Gravel
+task.gtmaid.dirt=Excavating Dirt
+task.gtmaid.clay=Excavating Clay
+task.gtmaid.ore=Mining
+task.gtmaid.washore=Washing Ore
+task.gtmaid.pickwater=Collecting Water
+task.gtmaid.picklava=Collecting Lava
+task.gtmaid.addwater=Adding Water
+task.gtmaid.pickitem=Logistics
+task.gtmaid.generator=Generator
+task.gtmaid.tree=tree planting
+task.gtmaid.hammer=Hammer

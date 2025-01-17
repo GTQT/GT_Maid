@@ -5,20 +5,24 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.ai.EntityAIMoveToBlock;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
-import static keqing.gtmaid.GMConfig.runDelayBroke;
+import static keqing.gtmaid.GMConfig.*;
 
 
 public class EntityMaidBrokeBlock extends EntityAIMoveToBlock {
     private final AbstractEntityMaid maid;
+    String task;
     Block block;
 
-    public EntityMaidBrokeBlock(Block block, AbstractEntityMaid entityMaid, float speed) {
+    public EntityMaidBrokeBlock(String task, Block block, AbstractEntityMaid entityMaid, float speed) {
         super(entityMaid, speed, 4);
         this.maid = entityMaid;
+        this.task = task;
         this.block = block;
     }
 
@@ -63,19 +67,56 @@ public class EntityMaidBrokeBlock extends EntityAIMoveToBlock {
 
     @Override
     public void updateTask() {
+        if (chainSwitch) {
+            tryToBrokeMore(destinationBlock);
+        } else {
+            IBlockState blockState = maid.world.getBlockState(destinationBlock);
+            Block block = blockState.getBlock();
+            maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
+            maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
+            maid.getHeldItemMainhand().damageItem(1, maid);
+        }
+
+    }
+
+    public void tryToBrokeMore(BlockPos destinationBlock) {
         IBlockState blockState = maid.world.getBlockState(destinationBlock);
         Block block = blockState.getBlock();
-        maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
-        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
-        maid.getHeldItemMainhand().damageItem(1, maid);
+        int count = 0;
+        for (int i = -chainRange; i <= chainRange; i++) {
+            for (int j = -chainRange; j <= chainRange; j++) {
+                for (int k = -chainRange; k <= chainRange; k++) {
+                    BlockPos blockpos1 = destinationBlock.add(i, j, k);
+                    IBlockState blockState1 = maid.world.getBlockState(blockpos1);
+                    Block block1 = blockState1.getBlock();
+                    if (block == block1) {
+                        count++;
+                        maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+                    }
+                }
+            }
+        }
+        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), count);
+        maid.getHeldItemMainhand().damageItem(count, maid);
     }
 
     @Override
     protected boolean shouldMoveTo(World worldIn, BlockPos pos) {
-        // 获取指定位置的方块状态
-        // 获取方块
         IBlockState blockState = worldIn.getBlockState(pos);
-        Block targetBlock = blockState.getBlock();
-        return targetBlock == block;
+        Block block = blockState.getBlock();
+        if (!oreMode) return block == this.block;
+        ItemStack itemStack = new ItemStack(block);
+        if (itemStack.isEmpty()) {
+            return false;
+        }
+        // 使用 OreDictionary 检查方块是否为树木
+        int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+        for (int oreID : oreIDs) {
+            String oreName = OreDictionary.getOreName(oreID);
+            if (oreName.contains(task)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

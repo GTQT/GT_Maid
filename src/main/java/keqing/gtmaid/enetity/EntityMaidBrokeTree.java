@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-import static keqing.gtmaid.GMConfig.runDelayTree;
+import static keqing.gtmaid.GMConfig.*;
 
 
 public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
@@ -63,11 +63,42 @@ public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
 
     @Override
     public void updateTask() {
+        if (chainSwitch) {
+            tryToBrokeMore(destinationBlock);
+        } else {
+            IBlockState blockState = maid.world.getBlockState(destinationBlock);
+            Block block = blockState.getBlock();
+            maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
+            int meta = blockState.getBlock().getMetaFromState(blockState);
+            maid.entityDropItem(new ItemStack(block, 1, meta), 0);
+            maid.getHeldItemMainhand().damageItem(1, maid);
+        }
+
+    }
+
+    public void tryToBrokeMore(BlockPos destinationBlock) {
+        // 获取指定位置的方块状态
         IBlockState blockState = maid.world.getBlockState(destinationBlock);
+        // 获取方块
         Block block = blockState.getBlock();
-        maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
-        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
-        maid.getHeldItemMainhand().damageItem(1, maid);
+        int meta = blockState.getBlock().getMetaFromState(blockState);
+
+        int count = 0;
+        for (int i = -chainRange; i <= chainRange; i++) {
+            for (int j = -4; j <= 12; j++) {
+                for (int k = -chainRange; k <= chainRange; k++) {
+                    BlockPos blockpos1 = destinationBlock.add(i, j, k);
+                    IBlockState blockState1 = maid.world.getBlockState(blockpos1);
+                    Block block1 = blockState1.getBlock();
+                    if (block == block1) {
+                        count++;
+                        maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+                    }
+                }
+            }
+        }
+        maid.entityDropItem(new ItemStack(block, count, meta), 0);
+        maid.getHeldItemMainhand().damageItem(count, maid);
     }
 
     @Override

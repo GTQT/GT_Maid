@@ -157,6 +157,7 @@ dependencies {
     implementation rfg.deobf(files("libs/modularui-2.4.3.jar"))
     implementation rfg.deobf(files("libs/touhoulittlemaid-1.12.2-1.2.5-release.jar"))
     implementation rfg.deobf(files("libs/codecjlayermp3-1.0.0-SNAPSHOT.jar"))
+    implementation rfg.deobf(files("libs/ae2-uel-v0.56.6.jar"))
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'

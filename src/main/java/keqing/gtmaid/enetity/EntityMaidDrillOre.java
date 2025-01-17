@@ -11,20 +11,20 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-import static keqing.gtmaid.GMConfig.runDelayOre;
+import static keqing.gtmaid.GMConfig.*;
 
 
 public class EntityMaidDrillOre extends EntityAIMoveToBlock {
     private final AbstractEntityMaid maid;
 
     public EntityMaidDrillOre(AbstractEntityMaid entityMaid, float speed) {
-        super(entityMaid, speed, 6);
+        super(entityMaid, speed, 8);
         this.maid = entityMaid;
     }
 
     @Override
     public boolean searchForDestination() {
-        int i = 6;
+        int i = 8;
         BlockPos blockpos = new BlockPos(this.maid);
 
         for (int k = -4; k <= 4; k++) {
@@ -63,11 +63,37 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
 
     @Override
     public void updateTask() {
+        if (chainSwitch) {
+            tryToBrokeMore(destinationBlock);
+        } else {
+            IBlockState blockState = maid.world.getBlockState(destinationBlock);
+            Block block = blockState.getBlock();
+            maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
+            maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
+            maid.getHeldItemMainhand().damageItem(1, maid);
+        }
+
+    }
+
+    public void tryToBrokeMore(BlockPos destinationBlock) {
         IBlockState blockState = maid.world.getBlockState(destinationBlock);
         Block block = blockState.getBlock();
-        maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
-        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
-        maid.getHeldItemMainhand().damageItem(1, maid);
+        int count = 0;
+        for (int i = -chainRange; i <= chainRange; i++) {
+            for (int j = -chainRange; j <= chainRange; j++) {
+                for (int k = -chainRange; k <= chainRange; k++) {
+                    BlockPos blockpos1 = destinationBlock.add(i, j, k);
+                    IBlockState blockState1 = maid.world.getBlockState(blockpos1);
+                    Block block1 = blockState1.getBlock();
+                    if (block == block1) {
+                        count++;
+                        maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+                    }
+                }
+            }
+        }
+        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), count);
+        maid.getHeldItemMainhand().damageItem(count, maid);
     }
 
     @Override

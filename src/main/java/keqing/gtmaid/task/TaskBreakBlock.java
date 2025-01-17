@@ -43,6 +43,6 @@ public class TaskBreakBlock implements IMaidTask {
 
     @Override
     public EntityAIBase createAI(AbstractEntityMaid maid) {
-        return new EntityMaidBrokeBlock(block, maid, 0.6f);
+        return new EntityMaidBrokeBlock(task, block, maid, 0.6f);
     }
 }
