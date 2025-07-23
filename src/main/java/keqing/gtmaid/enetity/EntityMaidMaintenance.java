@@ -13,10 +13,23 @@ import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 public class EntityMaidMaintenance extends EntityAIMoveToBlock {
+    private static final ItemStack TAPE_STACK = new ItemStack(MetaItems.DUCT_TAPE.getMetaItem(), 1, 502);
+    private static Optional<Field> TAPED_FIELD = Optional.empty();
+
+    static {
+        try {
+            Field f = MetaTileEntityMaintenanceHatch.class.getDeclaredField("isTaped");
+            f.setAccessible(true);
+            TAPED_FIELD = Optional.of(f);
+        } catch (NoSuchFieldException e) {
+            System.out.println("[GTMaid] Failed to find MetaTileEntityMaintenanceHatch.isTaped field.");
+        }
+    }
+
     private final AbstractEntityMaid maid;
-    ItemStack taps = new ItemStack(MetaItems.DUCT_TAPE.getMetaItem(), 1, 502);
 
     public EntityMaidMaintenance(AbstractEntityMaid entityMaid, float speed) {
         super(entityMaid, speed, 8);
@@ -25,58 +38,63 @@ public class EntityMaidMaintenance extends EntityAIMoveToBlock {
 
     @Override
     public void updateTask() {
-        TileEntity tileEntity = maid.world.getTileEntity(destinationBlock);
-        if (tileEntity instanceof IGregTechTileEntity) {
-            IGregTechTileEntity gregTechTileEntity = (IGregTechTileEntity) tileEntity;
-            MetaTileEntity metaTileEntity = gregTechTileEntity.getMetaTileEntity();
-            if (metaTileEntity instanceof MetaTileEntityMaintenanceHatch) {
-                MetaTileEntityMaintenanceHatch maintenanceHatch = (MetaTileEntityMaintenanceHatch) metaTileEntity;
-                boolean isTaped = getIsTaped(maintenanceHatch);
-                if (!isTaped) {
-                    IItemHandler maidInv = maid.getAvailableInv(false);
-                    IItemHandler itemStackHandler = getItemStackHandler(maintenanceHatch);
-                    assert itemStackHandler != null;
-                    for (int i = 0; i < maidInv.getSlots(); i++) {
-                        ItemStack stackInSlot = maidInv.getStackInSlot(i);
-                        if (stackInSlot.isItemEqual(taps)) {
-                            maidInv.extractItem(i, 1, false);
-                            itemStackHandler.insertItem(0, taps, false);
-                            break;
-                        }
-                    }
-                }
+        TileEntity te = maid.world.getTileEntity(destinationBlock);
+        if (!(te instanceof IGregTechTileEntity)) return;
+
+        MetaTileEntity mte = ((IGregTechTileEntity)te).getMetaTileEntity();
+        if (!(mte instanceof MetaTileEntityMaintenanceHatch)) return;
+
+        MetaTileEntityMaintenanceHatch hatch = (MetaTileEntityMaintenanceHatch)mte;
+        if (getIsTaped(hatch)) return; // 已处理则跳过
+
+        IItemHandler maidInv = maid.getAvailableInv(false);
+        IItemHandler hatchInv = getHatchInventory(hatch);
+        if (hatchInv == null) return;
+
+        for (int i = 0; i < maidInv.getSlots(); i++) {
+            ItemStack stack = maidInv.getStackInSlot(i);
+            if (!stack.isItemEqual(TAPE_STACK)) continue;
+
+            // 安全插入流程
+            ItemStack result = hatchInv.insertItem(0, TAPE_STACK, true);
+            if (!result.isEmpty()) continue; // 模拟插入失败
+
+            hatchInv.insertItem(0, TAPE_STACK, false); // 实际插入
+            maidInv.extractItem(i, 1, false);         // 抽取物品
+            return; // 成功完成
+        }
+    }
+
+    private boolean getIsTaped(MetaTileEntityMaintenanceHatch hatch) {
+        return TAPED_FIELD.map(f -> {
+            try {
+                return f.getBoolean(hatch);
+            } catch (IllegalAccessException e) {
+                return true; // 保守策略：视为已处理
             }
-        }
+        }).orElse(true); // 反射失败时视为已处理
     }
 
-    private boolean getIsTaped(MetaTileEntityMaintenanceHatch maintenanceHatch) {
+    private IItemHandler getHatchInventory(MetaTileEntityMaintenanceHatch hatch) {
+        // 建议改用GregTech官方API获取库存
+        // 此处保留原逻辑（生产环境应替换）
         try {
-            Field isTapedField = MetaTileEntityMaintenanceHatch.class.getDeclaredField("isTaped");
-            isTapedField.setAccessible(true);
-            return isTapedField.getBoolean(maintenanceHatch);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return false;
-        }
-    }
-
-    private IItemHandler getItemStackHandler(MetaTileEntityMaintenanceHatch maintenanceHatch) {
-        try {
-            Field itemStackHandlerField = MetaTileEntityMaintenanceHatch.class.getDeclaredField("itemStackHandler");
-            itemStackHandlerField.setAccessible(true);
-            return (IItemHandler) itemStackHandlerField.get(maintenanceHatch);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Field f = hatch.getClass().getDeclaredField("itemStackHandler");
+            f.setAccessible(true);
+            return (IItemHandler) f.get(hatch);
+        } catch (Exception e) {
             return null;
         }
     }
 
     @Override
-    protected boolean shouldMoveTo(World worldIn, BlockPos pos) {
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
-        if (tileEntity instanceof IGregTechTileEntity) {
-            IGregTechTileEntity gregTechTileEntity = (IGregTechTileEntity) tileEntity;
-            MetaTileEntity metaTileEntity = gregTechTileEntity.getMetaTileEntity();
-            return metaTileEntity instanceof MetaTileEntityMaintenanceHatch;
-        }
-        return false;
+    protected boolean shouldMoveTo(World world, BlockPos pos) {
+        TileEntity te = world.getTileEntity(pos);
+        if (!(te instanceof IGregTechTileEntity)) return false;
+
+        MetaTileEntity mte = ((IGregTechTileEntity)te).getMetaTileEntity();
+        if (!(mte instanceof MetaTileEntityMaintenanceHatch)) return false;
+
+        return !getIsTaped((MetaTileEntityMaintenanceHatch)mte);
     }
 }
