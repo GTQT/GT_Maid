@@ -47,8 +47,7 @@ public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
 
     @Override
     public boolean shouldExecute() {
-        if (this.maid.getHeldItemMainhand().getItem() instanceof ItemTool) {
-            ItemTool tool = (ItemTool) this.maid.getHeldItemMainhand().getItem();
+        if (this.maid.getHeldItemMainhand().getItem() instanceof ItemTool tool) {
             if (!tool.getToolClasses(this.maid.getHeldItemMainhand()).contains("axe")) return false;
             if (this.runDelay > 0) {
                 --this.runDelay;
@@ -68,9 +67,8 @@ public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
         } else {
             IBlockState blockState = maid.world.getBlockState(destinationBlock);
             Block block = blockState.getBlock();
+            maid.entityDropItem(block.getPickBlock(blockState, null, maid.world, destinationBlock, null), 0);
             maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
-            int meta = blockState.getBlock().getMetaFromState(blockState);
-            maid.entityDropItem(new ItemStack(block, 1, meta), 0);
             maid.getHeldItemMainhand().damageItem(1, maid);
         }
 
@@ -81,9 +79,7 @@ public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
         IBlockState blockState = maid.world.getBlockState(destinationBlock);
         // 获取方块
         Block block = blockState.getBlock();
-        int meta = blockState.getBlock().getMetaFromState(blockState);
 
-        int count = 0;
         for (int i = -chainRange; i <= chainRange; i++) {
             for (int j = -4; j <= 12; j++) {
                 for (int k = -chainRange; k <= chainRange; k++) {
@@ -91,14 +87,13 @@ public class EntityMaidBrokeTree extends EntityAIMoveToBlock {
                     IBlockState blockState1 = maid.world.getBlockState(blockpos1);
                     Block block1 = blockState1.getBlock();
                     if (block == block1) {
-                        count++;
+                        maid.entityDropItem(block1.getPickBlock(blockState1, null, maid.world, blockpos1, null), 0);
                         maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+                        maid.getHeldItemMainhand().damageItem(1, maid);
                     }
                 }
             }
         }
-        maid.entityDropItem(new ItemStack(block, count, meta), 0);
-        maid.getHeldItemMainhand().damageItem(count, maid);
     }
 
     @Override

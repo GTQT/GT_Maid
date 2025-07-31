@@ -1,15 +1,14 @@
 package keqing.gtmaid.enetity;
 
 import com.github.tartaricacid.touhoulittlemaid.api.AbstractEntityMaid;
+import gregtech.common.blocks.BlockOre;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.ai.EntityAIMoveToBlock;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
 import static keqing.gtmaid.GMConfig.*;
 
@@ -47,8 +46,7 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
 
     @Override
     public boolean shouldExecute() {
-        if (this.maid.getHeldItemMainhand().getItem() instanceof ItemTool) {
-            ItemTool tool = (ItemTool) this.maid.getHeldItemMainhand().getItem();
+        if (this.maid.getHeldItemMainhand().getItem() instanceof ItemTool tool) {
             if (!tool.getToolClasses(this.maid.getHeldItemMainhand()).contains("pickaxe")) return false;
             if (this.runDelay > 0) {
                 --this.runDelay;
@@ -66,34 +64,35 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
         if (chainSwitch) {
             tryToBrokeMore(destinationBlock);
         } else {
-            IBlockState blockState = maid.world.getBlockState(destinationBlock);
-            Block block = blockState.getBlock();
-            maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
-            maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), 1);
-            maid.getHeldItemMainhand().damageItem(1, maid);
+            IBlockState blockState1 = maid.world.getBlockState(destinationBlock);
+            Block block1 = blockState1.getBlock();
+            if (block1 instanceof BlockOre ore) {
+                maid.dropItem(ore.getItemDropped(blockState1, maid.world.rand, 1), 1);
+                maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
+                maid.getHeldItemMainhand().damageItem(1, maid);
+            }
         }
-
     }
 
     public void tryToBrokeMore(BlockPos destinationBlock) {
         IBlockState blockState = maid.world.getBlockState(destinationBlock);
         Block block = blockState.getBlock();
-        int count = 0;
-        for (int i = -chainRange; i <= chainRange; i++) {
-            for (int j = -chainRange; j <= chainRange; j++) {
-                for (int k = -chainRange; k <= chainRange; k++) {
-                    BlockPos blockpos1 = destinationBlock.add(i, j, k);
-                    IBlockState blockState1 = maid.world.getBlockState(blockpos1);
-                    Block block1 = blockState1.getBlock();
-                    if (block == block1) {
-                        count++;
-                        maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+        if (block instanceof BlockOre) {
+            for (int i = -chainRange; i <= chainRange; i++) {
+                for (int j = -chainRange; j <= chainRange; j++) {
+                    for (int k = -chainRange; k <= chainRange; k++) {
+                        BlockPos blockpos1 = destinationBlock.add(i, j, k);
+                        IBlockState blockState1 = maid.world.getBlockState(blockpos1);
+                        Block block1 = blockState1.getBlock();
+                        if (block1 instanceof BlockOre ore) {
+                            maid.dropItem(ore.getItemDropped(blockState1, maid.world.rand, 1), 1);
+                            maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
+                            maid.getHeldItemMainhand().damageItem(1, maid);
+                        }
                     }
                 }
             }
         }
-        maid.dropItem(block.getItemDropped(blockState, maid.world.rand, 1), count);
-        maid.getHeldItemMainhand().damageItem(count, maid);
     }
 
     @Override
@@ -101,16 +100,6 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
         // 获取指定位置的方块状态
         IBlockState blockState = worldIn.getBlockState(pos);
         Block block = blockState.getBlock();
-        if (block.getLocalizedName().contains("ore")) {
-            ItemStack itemStack = new ItemStack(block.getItemDropped(worldIn.getBlockState(pos), worldIn.rand, 1));
-            int[] oreIDs = OreDictionary.getOreIDs(itemStack);
-            for (int oreID : oreIDs) {
-                String oreName = OreDictionary.getOreName(oreID);
-                if (oreName.contains("ore")) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return block instanceof BlockOre;
     }
 }
