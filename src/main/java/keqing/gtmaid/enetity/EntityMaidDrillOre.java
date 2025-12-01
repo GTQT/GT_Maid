@@ -1,11 +1,14 @@
 package keqing.gtmaid.enetity;
 
 import com.github.tartaricacid.touhoulittlemaid.api.AbstractEntityMaid;
+import gregtech.api.unification.OreDictUnifier;
+import gregtech.api.unification.ore.OrePrefix;
 import gregtech.common.blocks.BlockOre;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.ai.EntityAIMoveToBlock;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemTool;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -67,7 +70,8 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
             IBlockState blockState1 = maid.world.getBlockState(destinationBlock);
             Block block1 = blockState1.getBlock();
             if (block1 instanceof BlockOre ore) {
-                maid.dropItem(ore.getItemDropped(blockState1, maid.world.rand, 1), 1);
+                ItemStack rawOreStack = OreDictUnifier.get(OrePrefix.rawOre, ore.material);
+                maid.entityDropItem(rawOreStack, 0);
                 maid.world.setBlockState(destinationBlock, Blocks.AIR.getDefaultState());
                 maid.getHeldItemMainhand().damageItem(1, maid);
             }
@@ -85,7 +89,8 @@ public class EntityMaidDrillOre extends EntityAIMoveToBlock {
                         IBlockState blockState1 = maid.world.getBlockState(blockpos1);
                         Block block1 = blockState1.getBlock();
                         if (block1 instanceof BlockOre ore) {
-                            maid.dropItem(ore.getItemDropped(blockState1, maid.world.rand, 1), 1);
+                            ItemStack rawOreStack = OreDictUnifier.get(OrePrefix.rawOre, ore.material);
+                            maid.entityDropItem(rawOreStack, 0);
                             maid.world.setBlockState(blockpos1, Blocks.AIR.getDefaultState());
                             maid.getHeldItemMainhand().damageItem(1, maid);
                         }

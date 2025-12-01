@@ -148,16 +148,18 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    implementation rfg.deobf("curse.maven:code-chicken-lib-1-8-242818:2779848")
-    implementation rfg.deobf(files("libs/gregtech-1.12.2-2.8.10-beta.jar"))
-    implementation rfg.deobf(files("libs/!mixinbooter-8.9.jar"))
-    implementation rfg.deobf(files("libs/jei_1.12.2-4.16.1.1003.jar"))
-    implementation rfg.deobf(files("libs/theoneprobe-1.12-1.4.28.jar"))
-    implementation rfg.deobf(files("libs/groovyscript-1.1.1.jar"))
-    implementation rfg.deobf(files("libs/modularui-2.4.3.jar"))
     implementation rfg.deobf(files("libs/touhoulittlemaid-1.12.2-1.2.5-release.jar"))
     implementation rfg.deobf(files("libs/codecjlayermp3-1.0.0-SNAPSHOT.jar"))
-    implementation rfg.deobf(files("libs/ae2-uel-v0.56.6.jar"))
+
+    implementation rfg.deobf("curse.maven:code-chicken-lib-1-8-242818:2779848")
+    implementation rfg.deobf(files("libs/gregtech-MeowmelMuku-1.12.2-2.9.0-190.jar"))
+
+    api("com.cleanroommc:modularui:2.5.0-rc4") { transitive = false }
+    api("com.cleanroommc:groovyscript:1.2.0-hotfix1") { transitive = false }
+
+    implementation rfg.deobf("curse.maven:ae2-fluid-crafting-rework-623955:5751930") // AE2FC 2.6.6
+    implementation rfg.deobf("curse.maven:ae2-extended-life-570458:6302098") // AE2FC 2.6.6
+    implementation rfg.deobf("curse.maven:mixin-booter-419286:6344449")
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'
